@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Gemini API Proxy</title>
+  <script>
+    // Replace with your Gemini API key
+    const GEMINI_API_KEY = 'AIzaSyAFRqJdn1TEIvKT3Dj4StbDCgAiJUpC28I';
+
+    async function queryGemini(prompt) {
+      const body = {
+        contents: [{
+          parts: [{ text: prompt }]
+        }]
+      };
+
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(body)
+        }
+      );
+
+      const data = await res.json();
+      return {
+        prompt: prompt,
+        response: data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "No response."
+      };
+    }
+
+    window.onload = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const prompt = params.get("prompt");
+
+      if (prompt) {
+        const json = await queryGemini(prompt);
+        document.body.innerHTML = `<pre>${JSON.stringify(json, null, 2)}</pre>`;
+      } else {
+        document.body.innerHTML = `<p>Use ?prompt=YourQuestion in the URL.</p>`;
+      }
+    };
+  </script>
+</head>
+<body>
+</body>
+</html>
