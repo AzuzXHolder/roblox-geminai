@@ -3,22 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <title>Gemini API Proxy</title>
-</head>
-<body>
-  <div id="result">Loading...</div>
-  
   <script>
     // Replace with your Gemini API key
     const GEMINI_API_KEY = 'AIzaSyAFRqJdn1TEIvKT3Dj4StbDCgAiJUpC28I';
     
     async function queryGemini(prompt) {
-      const body = {
-        contents: [{
-          parts: [{ text: prompt }]
-        }]
-      };
-      
       try {
+        const body = {
+          contents: [{
+            parts: [{ text: prompt }]
+          }]
+        };
+        
         const res = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
           {
@@ -42,15 +38,11 @@
         };
       }
     }
-    
-    // Main function
-    async function main() {
-      // Get query params
+
+    // Process the request immediately
+    (async () => {
       const params = new URLSearchParams(window.location.search);
       const prompt = params.get("prompt");
-      
-      // Set content type header
-      document.contentType = 'application/json';
       
       let result;
       if (prompt) {
@@ -61,14 +53,14 @@
           usage: "Add ?prompt=YourQuestion to the URL"
         };
       }
-      
-      // Return raw JSON only
-      document.body.innerHTML = '';
+
+      // Clear EVERYTHING and only write the JSON
+      document.open();
       document.write(JSON.stringify(result));
-    }
-    
-    // Run main function
-    main();
+      document.close();
+    })();
   </script>
+</head>
+<body>
 </body>
 </html>
