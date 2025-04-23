@@ -1,35 +1,28 @@
 <?php
-session_start();
+// Replace with your real API key
+$apiKey = 'GEMINI_API_KEY';
 
-$op = $_GET["prompt"];
-
-$headers = [
-    'Content-Type: application/json',
-];
+$prompt = isset($_GET['prompt']) ? $_GET['prompt'] : 'Hello, what can you do?';
 
 $data = [
-    'contents' => [
-        [
-            'parts' => [
-                ['text' => $op]
-            ]
-        ]
-    ]
+    "contents" => [[
+        "parts" => [[ "text" => $prompt ]]
+    ]]
 ];
 
-$ch = curl_init('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyAFRqJdn1TEIvKT3Dj4StbDCgAiJUpC28I');
-curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-curl_setopt($ch, CURLOPT_POST, true);
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_URL, "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyAFRqJdn1TEIvKT3Dj4StbDCgAiJUpC28I" . $apiKey);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+
 $response = curl_exec($ch);
 curl_close($ch);
 
-$pj = json_decode($response, true);
+// Output only the first response text
+$json = json_decode($response, true);
+$text = $json['candidates'][0]['content']['parts'][0]['text'] ?? 'No response.';
 
-// Save the response in session memory
-$_SESSION['response'] = $pj['choices'][0]['text'];
-
-echo $_SESSION['response']; // Output the stored response
-
+echo $text;
 ?>
