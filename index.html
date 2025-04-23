@@ -2,23 +2,28 @@
 <html>
 <head>
   <meta charset="UTF-8">
+  <title>Gemini API Proxy</title>
+</head>
+<body>
+  <div id="result">Processing request...</div>
+
   <script>
-    // Immediately run this script when the page loads
-    (function() {
-      // Get the prompt from URL parameters
-      const urlParams = new URLSearchParams(window.location.search);
-      const prompt = urlParams.get('prompt');
+    // Get the prompt from URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const prompt = urlParams.get('prompt');
+    const resultDiv = document.getElementById('result');
+    
+    // Define the function to query Gemini API
+    async function queryGemini(promptText) {
+      const GEMINI_API_KEY = 'AIzaSyAFRqJdn1TEIvKT3Dj4StbDCgAiJUpC28I';
       
-      // Define the function to query Gemini API
-      async function queryGemini(promptText) {
-        const GEMINI_API_KEY = 'AIzaSyAFRqJdn1TEIvKT3Dj4StbDCgAiJUpC28I';
-        
-        const body = {
-          contents: [{
-            parts: [{ text: promptText }]
-          }]
-        };
-        
+      const body = {
+        contents: [{
+          parts: [{ text: promptText }]
+        }]
+      };
+      
+      try {
         const response = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
           {
@@ -33,46 +38,43 @@
         const data = await response.json();
         return {
           prompt: promptText,
-          response: data?.candidates?[0]?.content?.parts?[0]?.text || "No response."
+          response: data?.candidates?.[0]?.content?.parts?.[0]?.text || "No response."
+        };
+      } catch (error) {
+        return {
+          prompt: promptText,
+          error: error.message
         };
       }
-      
-      // Process the prompt and output pure JSON
-      if (prompt) {
-        queryGemini(prompt)
-          .then(result => {
-            // Clear everything from the page
-            document.body.innerHTML = '';
-            document.head.innerHTML = '';
-            
-            // Set content type as JSON
-            document.contentType = 'application/json';
-            
-            // Replace entire document with just JSON
-            document.open('text/plain');
-            document.write(JSON.stringify(result));
-            document.close();
-          })
-          .catch(error => {
-            document.open('text/plain');
-            document.write(JSON.stringify({
-              prompt: prompt,
-              error: error.message
-            }));
-            document.close();
+    }
+    
+    // Function to display JSON only
+    function displayJsonOnly(jsonData) {
+      // Convert the entire page to just JSON
+      document.body.innerHTML = '';
+      document.body.style.fontFamily = 'monospace';
+      document.body.style.whiteSpace = 'pre';
+      document.body.textContent = JSON.stringify(jsonData);
+    }
+    
+    // Process the prompt
+    if (prompt) {
+      queryGemini(prompt)
+        .then(result => {
+          displayJsonOnly(result);
+        })
+        .catch(error => {
+          displayJsonOnly({
+            prompt: prompt,
+            error: error.message
           });
-      } else {
-        document.open('text/plain');
-        document.write(JSON.stringify({
-          error: "Missing prompt parameter",
-          usage: "Add ?prompt=YourQuestion to the URL"
-        }));
-        document.close();
-      }
-    })();
+        });
+    } else {
+      displayJsonOnly({
+        error: "Missing prompt parameter",
+        usage: "Add ?prompt=YourQuestion to the URL"
+      });
+    }
   </script>
-</head>
-<body>
-  <!-- This content will be replaced with JSON -->
 </body>
 </html>
