@@ -3,6 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <title>Gemini API Proxy</title>
+</head>
+<body>
+  <div id="result">Loading...</div>
+  
   <script>
     // Replace with your Gemini API key
     const GEMINI_API_KEY = 'AIzaSyAFRqJdn1TEIvKT3Dj4StbDCgAiJUpC28I';
@@ -29,7 +33,7 @@
         const data = await res.json();
         return {
           prompt: prompt,
-          response: data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "No response."
+          response: data?.candidates?.[0]?.content?.parts?.[0]?.text || "No response."
         };
       } catch (error) {
         return {
@@ -39,30 +43,32 @@
       }
     }
     
-    window.onload = async () => {
+    // Main function
+    async function main() {
+      // Get query params
       const params = new URLSearchParams(window.location.search);
       const prompt = params.get("prompt");
       
-      // Set proper JSON content type header
-      document.querySelector('head').innerHTML += '<meta http-equiv="Content-Type" content="application/json; charset=utf-8">';
+      // Set content type header
+      document.contentType = 'application/json';
       
+      let result;
       if (prompt) {
-        const result = await queryGemini(prompt);
-        
-        // Return as proper JSON
-        document.querySelector('html').innerHTML = '';
-        document.querySelector('html').textContent = JSON.stringify(result, null, 2);
+        result = await queryGemini(prompt);
       } else {
-        // Return usage instructions as JSON
-        document.querySelector('html').innerHTML = '';
-        document.querySelector('html').textContent = JSON.stringify({
+        result = {
           error: "Missing prompt parameter",
           usage: "Add ?prompt=YourQuestion to the URL"
-        }, null, 2);
+        };
       }
-    };
+      
+      // Return raw JSON only
+      document.body.innerHTML = '';
+      document.write(JSON.stringify(result));
+    }
+    
+    // Run main function
+    main();
   </script>
-</head>
-<body>
 </body>
 </html>
